@@ -9,6 +9,8 @@ inputs:
     default: retail
   future:
     description: Check Interface versions from beta/PTR?
+  replaceflavor:
+    description: Replace 'Interface-<flavor>:' in the main TOC?
 runs:
   using: composite
   steps:
