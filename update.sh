@@ -104,10 +104,10 @@ function replace {
 
 	echo "Replace with following parameters: file=$file, version=$version, INTERFACE=$INTERFACE, flavorReplace=$flavorReplace"
 	# replace the interface version value in the file
-	sed -ri "s/^(## Interface:).*\$/\1 ${version}/" "$file"
+	sed -ri "s/^(## Interface:)[^\r\n]*(.*\$)/\1 ${version}\2/" "$file"
 	if [ "x$flavorReplace" != 'x' ]; then
 		echo "Replace flavor: ## Interface-${INTERFACE}: ${version}"
-		sed -ri "s/^(## Interface-${INTERFACE}:).*\$/\1 ${version}/" "$file"
+		sed -ri "s/^(## Interface-${INTERFACE}:)[^\r\n]*(.*\$)/\1 ${version}\2/" "$file"
 	fi
 
 	# output file status
