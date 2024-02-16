@@ -5,17 +5,25 @@ FUTURE="$2"
 if [[ ! "${FUTURE,,}" =~ ^(y|yes|true|1)$ ]]; then
 	FUTURE=''
 fi
+REPLACEFLAVOR="$3"
+if [[ ! "${REPLACEFLAVOR,,}" =~ ^(y|yes|true|1)$ ]]; then
+	REPLACEFLAVOR=''
+fi
 
 PRODUCT=
+INTERFACE=
 case "$FLAVOR" in
 	retail|mainline)
 		PRODUCT='wow'
+		INTERFACE='Mainline'
 		;;
 	classic_era|vanilla)
 		PRODUCT='wow_classic_era'
+		INTERFACE='Vanilla'
 		;;
 	classic|wrath|wotlk)
 		PRODUCT='wow_classic'
+		INTERFACE='Wrath'
 		;;
 	*)
 		echo "Invalid flavor '$FLAVOR', must be one of retail/mainline, classic_era/vanilla, classic/wrath/wotlkc."
@@ -48,6 +56,7 @@ function product_version {
 function replace {
 	local file="$1"
 	local product="${2:-$PRODUCT}"
+	local flavorReplace="${2:-$REPLACEFLAVOR}" # if not version is passed, then we are in the main toc file.
 
 	# generate a hash of the file before we potentially modify it
 	local checksum
@@ -95,6 +104,9 @@ function replace {
 
 	# replace the interface version value in the file
 	sed -ri "s/^(## Interface:).*\$/\1 ${version}/" "$file"
+	if [ "x$flavorReplace" != 'x' ]; then
+		sed -ri "s/^(## Interface-${INTERFACE}:).*\$/\1 ${version}/" "$file"
+	fi
 
 	# output file status
 	if [[ "$(md5sum "$file")" != "$checksum" ]]; then
