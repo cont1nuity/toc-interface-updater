@@ -21,12 +21,12 @@ case "$FLAVOR" in
 		PRODUCT='wow_classic_era'
 		INTERFACE='Vanilla'
 		;;
-	classic|wrath|wotlk)
+	classic|cata)
 		PRODUCT='wow_classic'
-		INTERFACE='Wrath'
+		INTERFACE='Cata'
 		;;
 	*)
-		echo "Invalid flavor '$FLAVOR', must be one of retail/mainline, classic_era/vanilla, classic/wrath/wotlkc."
+		echo "Invalid flavor '$FLAVOR', must be one of retail/mainline, classic_era/vanilla, classic/cata."
 		exit 1
 		;;
 esac
