@@ -262,4 +262,5 @@ function update {
 
 while read -r file; do
 	update "$file"
-done < <(find . -maxdepth "$DEPTH" -type f -iname '*.toc' | sed 's/^.\///')
+#done < <(find . -type f -iname '*.toc' | sed 's/^.\///')
+done < <(find -- *.toc)
