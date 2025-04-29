@@ -235,4 +235,4 @@ function update {
 while read -r file; do
 	update "$file"
 #done < <(find . -type f -iname '*.toc' | sed 's/^.\///')
-done < <(find -- *.toc)
+done < <(find -- *.toc | sed 's/^.\///')
