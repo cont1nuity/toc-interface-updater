@@ -170,7 +170,7 @@ function replace_line {
 	interface="$(printf ", %s" "${versions[@]}")"
 
 	# replace version(s) in-line, at specified line number if applicable
-	sed -ri "${lineno%%:*}s/^(## Interface.*:)\s?.+/\1 ${interface:2}/" "$file"
+	sed -ri "${lineno%%:*}s/^(## Interface.*:)\s?[^\r\n]+/\1 ${interface:2}/" "$file"
 }
 
 function update {
