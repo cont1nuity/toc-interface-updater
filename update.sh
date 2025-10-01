@@ -184,8 +184,9 @@ function replace_line {
 
 	# grab versions for this product
 	local versions
-	mapfile -t versions < <(get_versions "$product")
-	# versions=($(get_versions "$product"))
+	#mapfile -t versions < <(get_versions "$product")
+	# shellcheck disable=SC2207
+	versions=($(get_versions "$product"))
 
 	if [ -n "${versions[*]}" ]; then
 		# concatinate versions
