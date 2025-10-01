@@ -193,8 +193,11 @@ function replace_line {
 	local all_versions
 	all_versions=()
 
-	for product in ${products//,/ }; do
-		echo "Getting version for '$product' ..."
+	# grab versions for this product
+	local versions
+	#mapfile -t versions < <(get_versions "$product")
+	# shellcheck disable=SC2207
+	versions=($(get_versions "$product"))
 
 		# grab versions for this product
 		local versions
