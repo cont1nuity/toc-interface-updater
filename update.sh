@@ -187,24 +187,31 @@ function get_versions {
 
 function replace_line {
 	local file="$1"
-	local product="$2"
+	local products="$2"
 	local lineno="${3:-}"
 
-	echo "Getting version for '$product' ..."
+	local all_versions
+	all_versions=()
 
-	# grab versions for this product
-	local versions
-	#mapfile -t versions < <(get_versions "$product")
-	# shellcheck disable=SC2207
-	versions=($(get_versions "$product"))
+	for product in ${products//,/ }; do
+		echo "Getting version for '$product' ..."
 
-	if [ -n "${versions[*]}" ]; then
-		# concatinate versions
+		# grab versions for this product
+		local versions
+		mapfile -t versions < <(get_versions "$product")
+
+		for version in "${versions[@]}"; do
+			all_versions+=("$version")
+		done
+	done
+
+	if [ -n "${all_versions[*]}" ]; then
+		# concatenate versions
 		local interface
-		interface="$(printf ", %s" "${versions[@]}")"
+		interface="$(printf ", %s" "${all_versions[@]}")"
 
 		# replace version(s) in-line, at specified line number if applicable
-		sed -ri "${lineno%%:*}s/^(## Interface.*:)\s?[^\r\n]+/\1 ${interface:2}/" "$file"
+		sed -ri "${lineno%%:*}s/^(## Interface.*:)\s?.+/\1 ${interface:2}/" "$file"
 	fi
 }
 
