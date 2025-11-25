@@ -9,7 +9,7 @@ $0 [OPTIONS]
 Options:
   --beta, -b    Include beta versions
   --ptr, -p     Include test versions
-  --flavor, -f  Fallback game flavor (retail/classic/vanilla)
+  --flavor, -f  Game flavor(s), can be specified multiple times
   --depth, -d   Set max recursion into subdirectories
   --help, -h    Show this help text
 EOF
@@ -17,8 +17,8 @@ EOF
 
 BETA=false
 TEST=false
-DEFAULT='wow'
 DEPTH='99'
+FLAVORS=()
 
 args="$(getopt -n "$0" -l 'help,flavor:,beta,ptr,depth:' -o 'hf:bpd:' -- "$@")"
 eval set -- "$args"
@@ -30,15 +30,14 @@ while [ $# -ge 1 ]; do
 			exit 0
 			;;
 		--flavor|-f)
-			# TODO: support multiple flavors at the same time
 			if [[ "${2,,}" =~ (retail|mainline) ]]; then
-				DEFAULT='wow'
+				FLAVORS+=('wow')
 			elif [[ "${2,,}" =~ (classic_era|vanilla) ]]; then
-				DEFAULT='wow_classic_era'
+				FLAVORS+=('wow_classic_era')
 			elif [[ "${2,,}" =~ (classic|mists) ]]; then
-				DEFAULT='wow_classic'
+				FLAVORS+=('wow_classic')
 			else
-				echo "invalid flavor '$2', must be one of: retail, mainline, classic, cata, mists, classic_era, vanilla."
+				echo "invalid flavor '$2', must be one of: retail, mainline, classic, mists, classic_era, vanilla"
 				exit 1
 			fi
 			shift
@@ -66,6 +65,10 @@ while [ $# -ge 1 ]; do
 	shift
 done
 
+if [ -z "${FLAVORS[*]}" ]; then
+	FLAVORS=('wow')
+fi
+
 declare -A version_cache
 function get_version_cdn {
 	local product="$1"
@@ -86,7 +89,8 @@ function get_version_cdn {
 			fi
 
 			#product_info="$(nc -w 30 'us.version.battle.net' 1119 <<< "v1/products/$product/versions")"
-			product_info="`(wget -qO- https://us.version.battle.net/v2/products/$product/versions)`"
+			#product_info="`(wget -qO- https://us.version.battle.net/v2/products/$product/versions)`"
+			product_info="$(curl -fsSL "https://us.version.battle.net/v2/products/$product/versions")"
 
 			if [ "$((retries--))" -eq '0' ]; then
 				echo "No response from Blizzard, no attempts remaining" >&2
@@ -169,18 +173,17 @@ function get_versions {
 		fi
 	fi
 
-	# make sure we don't get duplicates
-	mapfile -t versions < <(printf "%s\n" "${versions[@]}" | sort -un)
-
-	echo "${versions[@]}"
+	# output sorted versions without duplicates
+	printf "%s\n" "${versions[@]}" | sort -un
 }
 
 function replace_line {
 	local file="$1"
-	local product="$2"
+	local products="$2"
 	local lineno="${3:-}"
 
-	echo "Getting version for '$product' ..."
+	local all_versions
+	all_versions=()
 
 	# grab versions for this product
 	local versions
@@ -188,10 +191,19 @@ function replace_line {
 	# shellcheck disable=SC2207
 	versions=($(get_versions "$product"))
 
-	if [ -n "${versions[*]}" ]; then
-		# concatinate versions
+		# grab versions for this product
+		local versions
+		mapfile -t versions < <(get_versions "$product")
+
+		for version in "${versions[@]}"; do
+			all_versions+=("$version")
+		done
+	done
+
+	if [ -n "${all_versions[*]}" ]; then
+		# concatenate versions
 		local interface
-		interface="$(printf ", %s" "${versions[@]}")"
+		interface="$(printf ", %s" "${all_versions[@]}")"
 
 		# replace version(s) in-line, at specified line number if applicable
 		sed -ri "${lineno%%:*}s/^(## Interface.*:)\s?[^\r\n]+/\1 ${interface:2}/" "$file"
@@ -213,7 +225,8 @@ function update {
 	else
 		# check multi-toc, passing the line number for each match
 		if lineno=$(grep -nE '^## Interface:' "$file"); then
-			replace_line "$file" "$DEFAULT" "$lineno"
+			flavors="$(printf '%s,' "${FLAVORS[@]}")"
+			replace_line "$file" "${flavors%,}" "$lineno"
 		fi
 		if lineno=$(grep -nE '^## Interface-Vanilla:' "$file"); then
 			replace_line "$file" 'wow_classic_era' "$lineno"
