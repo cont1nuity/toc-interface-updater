@@ -235,8 +235,9 @@ function update {
 	else
 		# check multi-toc, passing the line number for each match
 		if lineno=$(grep -nE '^## Interface:' "$file"); then
-			flavors="$(printf '%s,' "${FLAVORS[@]}")"
-			replace_line "$file" "${flavors%,}" "$lineno"
+			#flavors="$(printf '%s,' "${FLAVORS[@]}")"
+			#replace_line "$file" "${flavors%,}" "$lineno"
+			replace_line "$file" 'wow' "$lineno"
 		fi
 		if lineno=$(grep -nE '^## Interface-Vanilla:' "$file"); then
 			replace_line "$file" 'wow_classic_era' "$lineno"
