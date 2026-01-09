@@ -230,7 +230,7 @@ function update {
 		replace_line "$file" 'wow_classic'
 	elif [[ "$file" =~ [_-](Wrath).toc$ ]]; then
 		replace_line "$file" 'wow_classic_titan'
-	elif [[ "$file" =~ [_-](TBC).toc$ ]]; then
+	elif [[ "$file" =~ [_-](BCC).toc$ ]]; then
 		replace_line "$file" 'wow_classic_era_ptr'
 	else
 		# check multi-toc, passing the line number for each match
@@ -250,7 +250,7 @@ function update {
 		if lineno=$(grep -nE '^## Interface-Wrath:' "$file"); then
 			replace_line "$file" 'wow_classic_titan' "$lineno"
 		fi
-		if lineno=$(grep -nE '^## Interface-TBC:' "$file"); then
+		if lineno=$(grep -nE '^## Interface-BCC:' "$file"); then
 			replace_line "$file" 'wow_classic_era_ptr' "$lineno"
 		fi
 	fi
