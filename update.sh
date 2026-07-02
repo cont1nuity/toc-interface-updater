@@ -235,9 +235,37 @@ function update {
 	else
 		# check multi-toc, passing the line number for each match
 		if lineno=$(grep -nE '^## Interface:' "$file"); then
-			#flavors="$(printf '%s,' "${FLAVORS[@]}")"
-			#replace_line "$file" "${flavors%,}" "$lineno"
-			replace_line "$file" 'wow' "$lineno"
+			# bucket the versions already on the line by interface band and
+			# refresh each bucket to its latest, preserving the game types
+			# present; unknown bands (no live product) leave the line untouched
+			local existing products v skip
+			existing="$(sed -n "${lineno%%:*}s/^## Interface:[[:space:]]*//p" "$file")"
+			products=''
+			skip=false
+			for v in ${existing//,/ }; do
+				v="${v//[!0-9]/}"
+				[ -n "$v" ] || continue
+				if (( v >= 110000 )); then
+					products+='wow,'
+				elif (( v >= 50000 )); then
+					products+='wow_classic,'
+				elif (( v >= 40000 )); then
+					echo "No live product for interface version $v in $file, leaving line untouched" >&2
+					skip=true
+					break
+				elif (( v >= 30000 )); then
+					products+='wow_classic_titan,'
+				elif (( v >= 20000 )); then
+					products+='wow_classic_era_ptr,'
+				else
+					products+='wow_classic_era,'
+				fi
+			done
+			if ! $skip && [ -n "$products" ]; then
+				# dedupe, preserving order
+				products="$(tr ',' '\n' <<< "${products%,}" | awk '!seen[$0]++' | paste -sd, -)"
+				replace_line "$file" "$products" "$lineno"
+			fi
 		fi
 		if lineno=$(grep -nE '^## Interface-Vanilla:' "$file"); then
 			replace_line "$file" 'wow_classic_era' "$lineno"
