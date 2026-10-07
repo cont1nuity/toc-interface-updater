@@ -82,6 +82,9 @@ declare -A version_cache
 function get_version_cdn {
 	local product="$1"
 
+	# ponytail: wow_forever 404s until launch, Forever beta runs on wow_classic_beta; drop once live
+	[ "$product" = 'wow_forever' ] && product='wow_classic_beta'
+
 	if [ "${version_cache[$product]+x}" ]; then
 		# version is cached
 		echo "${version_cache[$product]}"
@@ -236,7 +239,7 @@ function update {
 	# check filename and replace if it matches
 	if [[ "$file" =~ [_-](Standard|Mainline).toc$ ]]; then
 		replace_line "$file" 'wow'
-	elif [[ "$file" =~ [_-](Camelot)$ ]]; then
+	elif [[ "$file" =~ [_-](Camelot).toc$ ]]; then
 		replace_line "$file" 'wow_forever'
 	elif [[ "$file" =~ [_-](Mists|Classic).toc$ ]]; then
 		replace_line "$file" 'wow_classic'
@@ -273,6 +276,8 @@ function update {
 					products+='wow_classic_titan,'
 				elif (( v >= 20000 )); then
 					products+='wow_classic_era_ptr,'
+				elif (( v >= 16000 )); then
+					products+='wow_forever,'
 				else
 					products+='wow_classic_era,'
 				fi
@@ -286,6 +291,9 @@ function update {
 
 		# BigWigs' packager "Single TOC file" support
 		# https://github.com/BigWigsMods/packager#single-toc-file
+		if lineno=$(grep -nE '^## Interface-(Standard|Mainline):' "$file"); then
+			replace_line "$file" 'wow' "$lineno"
+		fi
 		if lineno=$(grep -nE '^## Interface-Camelot:' "$file"); then
 			replace_line "$file" 'wow_forever' "$lineno"
 		fi
